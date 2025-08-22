@@ -78,6 +78,34 @@ interface MenuItem extends CosmicObject {
   };
 }
 
+// Cart item interface
+interface CartItem {
+  id: string;
+  menuItem: MenuItem;
+  quantity: number;
+  specialInstructions?: string;
+}
+
+// Cart totals interface
+interface CartTotals {
+  subtotal: number;
+  deliveryFee: number;
+  tax: number;
+  total: number;
+}
+
+// Cart context interface
+interface CartContextType {
+  items: CartItem[];
+  addItem: (menuItem: MenuItem, quantity?: number, specialInstructions?: string) => void;
+  removeItem: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
+  clearCart: () => void;
+  getItemCount: () => number;
+  getTotals: () => CartTotals;
+  getRestaurantInfo: () => { restaurant: Restaurant | null; hasMultipleRestaurants: boolean };
+}
+
 // API response types
 interface CosmicResponse<T> {
   objects: T[];
@@ -110,6 +138,22 @@ interface SearchBarProps {
   className?: string;
 }
 
+interface CartItemProps {
+  item: CartItem;
+  className?: string;
+}
+
+interface AddToCartButtonProps {
+  menuItem: MenuItem;
+  className?: string;
+  variant?: 'default' | 'compact';
+}
+
+interface CartSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 // Type guards
 function isRestaurant(obj: CosmicObject): obj is Restaurant {
   return obj.type === 'restaurants';
@@ -137,11 +181,17 @@ export type {
   MenuItem,
   Category,
   DeliveryZone,
+  CartItem,
+  CartTotals,
+  CartContextType,
   CosmicResponse,
   RestaurantCardProps,
   MenuItemCardProps,
   CategoryFilterProps,
   SearchBarProps,
+  CartItemProps,
+  AddToCartButtonProps,
+  CartSidebarProps,
   CreateRestaurantData,
   CreateMenuItemData,
   CuisineType,

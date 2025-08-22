@@ -1,156 +1,109 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
-import { Search, ShoppingCart, Menu, X, User } from 'lucide-react'
+import Link from 'next/link'
+import { ShoppingCart, Menu, X, Search } from 'lucide-react'
+import { useCart } from '@/contexts/CartContext'
+import CartSidebar from '@/components/CartSidebar'
+import SearchBar from '@/components/SearchBar'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const { getItemCount } = useCart()
+  const itemCount = getItemCount()
 
-  // Test console log for dashboard capture when header component mounts
-  console.log('📱 Header component loaded - Dashboard console capture test')
+  const navigation = [
+    { name: 'Home', href: '/' },
+    { name: 'Restaurants', href: '/restaurants' },
+    { name: 'Categories', href: '/categories' },
+  ]
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">F</span>
+    <>
+      <header className="bg-white shadow-sm sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">F</span>
+                </div>
+                <span className="font-bold text-xl text-gray-900">FoodDash</span>
+              </Link>
             </div>
-            <span className="text-xl font-bold text-gray-900">FoodDash</span>
-          </Link>
 
-          {/* Desktop Search */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search restaurants or dishes..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value)
-                  if (e.target.value) {
-                    console.log(`🔍 Search query: ${e.target.value}`)
-                  }
-                }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="text-gray-700 hover:text-primary font-medium transition-colors"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Desktop Search */}
+            <div className="hidden lg:block flex-1 max-w-md mx-8">
+              <SearchBar placeholder="Search restaurants or dishes..." />
             </div>
-          </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link 
-              href="/restaurants" 
-              className="text-gray-700 hover:text-primary font-medium transition-colors"
-            >
-              Restaurants
-            </Link>
-            <Link 
-              href="/categories" 
-              className="text-gray-700 hover:text-primary font-medium transition-colors"
-            >
-              Categories
-            </Link>
+            {/* Cart and Mobile Menu */}
             <div className="flex items-center space-x-4">
-              <button 
+              {/* Cart Button */}
+              <button
+                onClick={() => setIsCartOpen(true)}
                 className="relative p-2 text-gray-700 hover:text-primary transition-colors"
-                onClick={() => console.log('🛒 Cart button clicked')}
               >
-                <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  0
-                </span>
+                <ShoppingCart className="w-6 h-6" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {itemCount > 99 ? '99+' : itemCount}
+                  </span>
+                )}
               </button>
-              <button 
-                className="flex items-center space-x-2 text-gray-700 hover:text-primary transition-colors"
-                onClick={() => console.log('👤 Sign in button clicked')}
-              >
-                <User className="h-5 w-5" />
-                <span className="font-medium">Sign In</span>
-              </button>
-            </div>
-          </nav>
 
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2 text-gray-700"
-            onClick={() => {
-              setIsMenuOpen(!isMenuOpen)
-              console.log(`📱 Mobile menu ${!isMenuOpen ? 'opened' : 'closed'}`)
-            }}
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Search */}
-        <div className="md:hidden pb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search restaurants or dishes..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                if (e.target.value) {
-                  console.log(`🔍 Mobile search query: ${e.target.value}`)
-                }
-              }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
-          <div className="px-4 py-2 space-y-4">
-            <Link 
-              href="/restaurants" 
-              className="block py-2 text-gray-700 hover:text-primary font-medium"
-              onClick={() => {
-                setIsMenuOpen(false)
-                console.log('🏪 Restaurants link clicked (mobile)')
-              }}
-            >
-              Restaurants
-            </Link>
-            <Link 
-              href="/categories" 
-              className="block py-2 text-gray-700 hover:text-primary font-medium"
-              onClick={() => {
-                setIsMenuOpen(false)
-                console.log('🍕 Categories link clicked (mobile)')
-              }}
-            >
-              Categories
-            </Link>
-            <div className="flex items-center justify-between pt-4 border-t">
-              <button 
-                className="flex items-center space-x-2 text-gray-700"
-                onClick={() => console.log('🛒 Mobile cart button clicked')}
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden p-2 text-gray-700 hover:text-primary transition-colors"
               >
-                <ShoppingCart className="h-5 w-5" />
-                <span>Cart (0)</span>
-              </button>
-              <button 
-                className="flex items-center space-x-2 text-gray-700"
-                onClick={() => console.log('👤 Mobile sign in button clicked')}
-              >
-                <User className="h-5 w-5" />
-                <span>Sign In</span>
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
+
+          {/* Mobile Search */}
+          <div className="lg:hidden pb-4">
+            <SearchBar placeholder="Search restaurants or dishes..." />
+          </div>
         </div>
-      )}
-    </header>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-gray-200">
+            <div className="px-4 py-4 space-y-2">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Cart Sidebar */}
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+    </>
   )
 }
