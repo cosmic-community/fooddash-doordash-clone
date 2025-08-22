@@ -96,9 +96,54 @@
     } catch (e) {}
   }
   
+  function sendRouteChange() {
+    try {
+      window.parent.postMessage({
+        type: 'route-change',
+        route: {
+          pathname: window.location.pathname,
+          search: window.location.search,
+          hash: window.location.hash,
+          href: window.location.href
+        },
+        timestamp: new Date().toISOString()
+      }, '*');
+    } catch (e) {}
+  }
+  
+  // Track initial route when script loads
   if (document.readyState === 'complete') {
     sendReady();
+    sendRouteChange();
   } else {
-    window.addEventListener('load', sendReady);
+    window.addEventListener('load', function() {
+      sendReady();
+      sendRouteChange();
+    });
   }
+  
+  // Track browser navigation events
+  window.addEventListener('popstate', function(event) {
+    sendRouteChange();
+  });
+  
+  window.addEventListener('hashchange', function(event) {
+    sendRouteChange();
+  });
+  
+  // Track programmatic navigation (pushState and replaceState)
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+  
+  history.pushState = function(...args) {
+    originalPushState.apply(history, args);
+    // Use setTimeout to ensure the URL has been updated
+    setTimeout(sendRouteChange, 0);
+  };
+  
+  history.replaceState = function(...args) {
+    originalReplaceState.apply(history, args);
+    // Use setTimeout to ensure the URL has been updated
+    setTimeout(sendRouteChange, 0);
+  };
 })();
