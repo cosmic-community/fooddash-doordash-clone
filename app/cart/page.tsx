@@ -207,11 +207,11 @@ export default function CartPage() {
               </div>
 
               {/* Minimum Order Check */}
-              {restaurant && totals.subtotal < restaurant.metadata?.minimum_order && (
+              {restaurant && totals.subtotal < (restaurant.metadata?.minimum_order ?? 0) && (
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-800">
-                    Minimum order of ${restaurant.metadata?.minimum_order?.toFixed(2)} required. 
-                    Add ${(restaurant.metadata?.minimum_order - totals.subtotal).toFixed(2)} more.
+                    Minimum order of ${(restaurant.metadata?.minimum_order ?? 0).toFixed(2)} required. 
+                    Add ${((restaurant.metadata?.minimum_order ?? 0) - totals.subtotal).toFixed(2)} more.
                   </p>
                 </div>
               )}
@@ -219,11 +219,11 @@ export default function CartPage() {
               {/* Checkout Button */}
               <button
                 onClick={handleCheckout}
-                disabled={isProcessing || (restaurant && totals.subtotal < restaurant.metadata?.minimum_order)}
+                disabled={isProcessing || (restaurant && totals.subtotal < (restaurant.metadata?.minimum_order ?? 0))}
                 className={`w-full mt-6 flex items-center justify-center space-x-2 px-6 py-4 rounded-lg font-semibold text-lg transition-all ${
                   isProcessing
                     ? 'bg-gray-400 cursor-wait'
-                    : restaurant && totals.subtotal < restaurant.metadata?.minimum_order
+                    : restaurant && totals.subtotal < (restaurant.metadata?.minimum_order ?? 0)
                       ? 'bg-gray-300 cursor-not-allowed'
                       : 'bg-primary text-white hover:bg-primary-dark hover:shadow-lg'
                 }`}

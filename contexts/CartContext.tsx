@@ -20,6 +20,13 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { menuItem, quantity, specialInstructions } = action.payload
+      
+      // Ensure we have a valid menuItem with an id
+      if (!menuItem?.id) {
+        console.error('Cannot add item without valid menuItem id')
+        return state
+      }
+      
       const existingItemIndex = state.items.findIndex(
         item => item.menuItem.id === menuItem.id && item.specialInstructions === specialInstructions
       )
@@ -27,13 +34,16 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       if (existingItemIndex > -1) {
         // Update existing item quantity
         const updatedItems = [...state.items]
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + quantity
+        const existingItem = updatedItems[existingItemIndex]
+        if (existingItem) {
+          updatedItems[existingItemIndex] = {
+            ...existingItem,
+            quantity: existingItem.quantity + quantity
+          }
         }
         return { ...state, items: updatedItems }
       } else {
-        // Add new item
+        // Add new item - ensure id is always a string
         const newItem: CartItem = {
           id: `${menuItem.id}-${Date.now()}-${Math.random()}`,
           menuItem,
