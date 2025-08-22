@@ -28,7 +28,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       }`}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
             <div className="flex items-center space-x-2">
               <ShoppingBag className="w-6 h-6 text-primary" />
               <h2 className="text-xl font-semibold">Your Cart</h2>
@@ -47,7 +47,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
           </div>
 
           {/* Cart Content */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
             {items.length === 0 ? (
               <div className="flex-1 flex items-center justify-center p-6">
                 <div className="text-center">
@@ -70,7 +70,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
               <>
                 {/* Restaurant Info */}
                 {restaurant && (
-                  <div className="p-4 bg-gray-50 border-b">
+                  <div className="p-4 bg-gray-50 border-b flex-shrink-0">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-medium text-gray-900">
@@ -96,9 +96,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                   </div>
                 )}
 
-                {/* Cart Items */}
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-4">
+                {/* Cart Items - Scrollable */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-4 space-y-4">
                     {items.map((item) => (
                       <div key={item.id} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg">
                         {/* Item Image */}
@@ -169,8 +169,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                   </div>
                 </div>
 
-                {/* Order Summary */}
-                <div className="border-t bg-white p-4">
+                {/* Order Summary - Fixed at bottom */}
+                <div className="border-t bg-white p-4 flex-shrink-0">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Subtotal</span>
