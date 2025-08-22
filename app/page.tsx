@@ -7,6 +7,12 @@ import MenuItemCard from '@/components/MenuItemCard'
 import SearchBar from '@/components/SearchBar'
 
 export default async function HomePage() {
+  // Test console logs to verify dashboard console capture
+  console.log('🍔 FoodDash homepage loading - Dashboard console test')
+  console.info('Testing info level log for dashboard capture')
+  console.warn('Testing warning level log for dashboard capture')
+  console.error('Testing error level log for dashboard capture')
+
   const [restaurants, categories, featuredItems] = await Promise.all([
     getRestaurants(),
     getCategories(),
@@ -14,6 +20,8 @@ export default async function HomePage() {
   ])
 
   const openRestaurants = restaurants.filter(r => r.metadata?.is_open)
+
+  console.log(`📊 Loaded ${restaurants.length} restaurants, ${categories.length} categories, ${featuredItems.length} featured items`)
 
   return (
     <div className="min-h-screen">
