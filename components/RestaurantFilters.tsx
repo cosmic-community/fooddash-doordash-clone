@@ -38,32 +38,43 @@ export default function RestaurantFilters({
   const updateFilters = useCallback((updates: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams.toString())
     
+    console.log('RestaurantFilters: Updating filters:', updates)
+    
     // Update or remove parameters
     Object.entries(updates).forEach(([key, value]) => {
       if (value && value !== '') {
         params.set(key, value)
+        console.log(`RestaurantFilters: Setting ${key} = ${value}`)
       } else {
         params.delete(key)
+        console.log(`RestaurantFilters: Removing ${key}`)
       }
     })
 
+    const newUrl = `/restaurants?${params.toString()}`
+    console.log('RestaurantFilters: Navigating to:', newUrl)
+    
     // Navigate to new URL with updated search parameters
-    router.push(`/restaurants?${params.toString()}`)
+    router.push(newUrl)
   }, [router, searchParams])
 
   const handleCuisineChange = (value: string) => {
+    console.log('RestaurantFilters: Cuisine changed to:', value)
     updateFilters({ cuisine: value })
   }
 
   const handleZoneChange = (value: string) => {
+    console.log('RestaurantFilters: Zone changed to:', value)
     updateFilters({ zone: value })
   }
 
   const handleSortChange = (value: string) => {
+    console.log('RestaurantFilters: Sort changed to:', value)
     updateFilters({ sort: value })
   }
 
   const clearAllFilters = () => {
+    console.log('RestaurantFilters: Clearing all filters')
     router.push('/restaurants')
   }
 
