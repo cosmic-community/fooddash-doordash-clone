@@ -1,28 +1,29 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback } from 'react'
 import { ChevronDown, Filter, Star, Clock, DollarSign } from 'lucide-react'
-import type { Category, DeliveryZone, Restaurant } from '@/types'
+import type { Category, DeliveryZone } from '@/types'
 
 interface RestaurantFiltersProps {
   categories: Category[]
   deliveryZones: DeliveryZone[]
-  restaurants: Restaurant[]
-  onFilteredResults: (restaurants: Restaurant[]) => void
+  selectedCuisine?: string
+  selectedZone?: string
+  selectedSort?: string
   className?: string
 }
 
 export default function RestaurantFilters({ 
   categories, 
   deliveryZones, 
-  restaurants,
-  onFilteredResults,
+  selectedCuisine = '',
+  selectedZone = '',
+  selectedSort = 'rating',
   className = '' 
 }: RestaurantFiltersProps) {
-  const [selectedCuisine, setSelectedCuisine] = useState('')
-  const [selectedZone, setSelectedZone] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const [sortBy, setSortBy] = useState('rating')
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   const cuisineTypes = [
     'American', 'Italian', 'Mexican', 'Asian', 'Indian', 'Mediterranean'
@@ -34,248 +35,42 @@ export default function RestaurantFilters({
     { value: 'delivery_fee', label: 'Lowest Delivery Fee', icon: DollarSign },
   ]
 
-  const applyFilters = useCallback(() => {
-    let filtered = [...restaurants]
-
-    // Filter by cuisine type
-    if (selectedCuisine) {
-      filtered = filtered.filter(restaurant => {
-        const cuisineKey = restaurant.metadata?.cuisine_type?.key?.toLowerCase()
-        const cuisineValue = restaurant.metadata?.cuisine_type?.value?.toLowerCase()
-        return cuisineKey === selectedCuisine.toLowerCase() || 
-               cuisineValue === selectedCuisine.toLowerCase()
-      })
-    }
-
-    // Filter by delivery zone
-    if (selectedZone) {
-      filtered = filtered.filter(restaurant => {
-        const deliveryZone = restaurant.metadata?.delivery_zone
-        if (typeof deliveryZone === 'string') {
-          return deliveryZone === selectedZone
-        }
-        if (typeof deliveryZone === 'object' && deliveryZone) {
-          return deliveryZone.id === selectedZone
-        }
-        return false
-      })
-    }
-
-    // Sort results
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          const ratingA = a.metadata?.rating || 0
-          const ratingB = b.metadata?.rating || 0
-          return ratingB - ratingA // Highest first
-        
-        case 'delivery_time':
-          // Parse delivery time (e.g., "25-35 min" -> 25)
-          const timeA = parseInt(a.metadata?.delivery_time?.split('-')[0] || '999') || 999
-          const timeB = parseInt(b.metadata?.delivery_time?.split('-')[0] || '999') || 999
-          return timeA - timeB // Fastest first
-        
-        case 'delivery_fee':
-          const feeA = a.metadata?.delivery_fee || 0
-          const feeB = b.metadata?.delivery_fee || 0
-          return feeA - feeB // Lowest first
-        
-        default:
-          return 0
+  const updateFilters = useCallback((updates: Record<string, string | undefined>) => {
+    const params = new URLSearchParams(searchParams.toString())
+    
+    // Update or remove parameters
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== '') {
+        params.set(key, value)
+      } else {
+        params.delete(key)
       }
     })
 
-    onFilteredResults(filtered)
-  }, [selectedCuisine, selectedZone, sortBy, restaurants, onFilteredResults])
+    // Navigate to new URL with updated search parameters
+    router.push(`/restaurants?${params.toString()}`)
+  }, [router, searchParams])
 
-  // Apply filters whenever filter values change
   const handleCuisineChange = (value: string) => {
-    setSelectedCuisine(value)
-    // Apply filters after state update
-    setTimeout(() => {
-      let filtered = [...restaurants]
-
-      // Filter by cuisine type
-      if (value) {
-        filtered = filtered.filter(restaurant => {
-          const cuisineKey = restaurant.metadata?.cuisine_type?.key?.toLowerCase()
-          const cuisineValue = restaurant.metadata?.cuisine_type?.value?.toLowerCase()
-          return cuisineKey === value.toLowerCase() || 
-                 cuisineValue === value.toLowerCase()
-        })
-      }
-
-      // Filter by delivery zone
-      if (selectedZone) {
-        filtered = filtered.filter(restaurant => {
-          const deliveryZone = restaurant.metadata?.delivery_zone
-          if (typeof deliveryZone === 'string') {
-            return deliveryZone === selectedZone
-          }
-          if (typeof deliveryZone === 'object' && deliveryZone) {
-            return deliveryZone.id === selectedZone
-          }
-          return false
-        })
-      }
-
-      // Sort results
-      filtered.sort((a, b) => {
-        switch (sortBy) {
-          case 'rating':
-            const ratingA = a.metadata?.rating || 0
-            const ratingB = b.metadata?.rating || 0
-            return ratingB - ratingA
-          case 'delivery_time':
-            const timeA = parseInt(a.metadata?.delivery_time?.split('-')[0] || '999') || 999
-            const timeB = parseInt(b.metadata?.delivery_time?.split('-')[0] || '999') || 999
-            return timeA - timeB
-          case 'delivery_fee':
-            const feeA = a.metadata?.delivery_fee || 0
-            const feeB = b.metadata?.delivery_fee || 0
-            return feeA - feeB
-          default:
-            return 0
-        }
-      })
-
-      onFilteredResults(filtered)
-    }, 0)
+    updateFilters({ cuisine: value })
   }
 
   const handleZoneChange = (value: string) => {
-    setSelectedZone(value)
-    // Apply filters after state update
-    setTimeout(() => {
-      let filtered = [...restaurants]
-
-      // Filter by cuisine type
-      if (selectedCuisine) {
-        filtered = filtered.filter(restaurant => {
-          const cuisineKey = restaurant.metadata?.cuisine_type?.key?.toLowerCase()
-          const cuisineValue = restaurant.metadata?.cuisine_type?.value?.toLowerCase()
-          return cuisineKey === selectedCuisine.toLowerCase() || 
-                 cuisineValue === selectedCuisine.toLowerCase()
-        })
-      }
-
-      // Filter by delivery zone
-      if (value) {
-        filtered = filtered.filter(restaurant => {
-          const deliveryZone = restaurant.metadata?.delivery_zone
-          if (typeof deliveryZone === 'string') {
-            return deliveryZone === value
-          }
-          if (typeof deliveryZone === 'object' && deliveryZone) {
-            return deliveryZone.id === value
-          }
-          return false
-        })
-      }
-
-      // Sort results
-      filtered.sort((a, b) => {
-        switch (sortBy) {
-          case 'rating':
-            const ratingA = a.metadata?.rating || 0
-            const ratingB = b.metadata?.rating || 0
-            return ratingB - ratingA
-          case 'delivery_time':
-            const timeA = parseInt(a.metadata?.delivery_time?.split('-')[0] || '999') || 999
-            const timeB = parseInt(b.metadata?.delivery_time?.split('-')[0] || '999') || 999
-            return timeA - timeB
-          case 'delivery_fee':
-            const feeA = a.metadata?.delivery_fee || 0
-            const feeB = b.metadata?.delivery_fee || 0
-            return feeA - feeB
-          default:
-            return 0
-        }
-      })
-
-      onFilteredResults(filtered)
-    }, 0)
+    updateFilters({ zone: value })
   }
 
   const handleSortChange = (value: string) => {
-    setSortBy(value)
-    // Apply filters after state update
-    setTimeout(() => {
-      let filtered = [...restaurants]
-
-      // Filter by cuisine type
-      if (selectedCuisine) {
-        filtered = filtered.filter(restaurant => {
-          const cuisineKey = restaurant.metadata?.cuisine_type?.key?.toLowerCase()
-          const cuisineValue = restaurant.metadata?.cuisine_type?.value?.toLowerCase()
-          return cuisineKey === selectedCuisine.toLowerCase() || 
-                 cuisineValue === selectedCuisine.toLowerCase()
-        })
-      }
-
-      // Filter by delivery zone
-      if (selectedZone) {
-        filtered = filtered.filter(restaurant => {
-          const deliveryZone = restaurant.metadata?.delivery_zone
-          if (typeof deliveryZone === 'string') {
-            return deliveryZone === selectedZone
-          }
-          if (typeof deliveryZone === 'object' && deliveryZone) {
-            return deliveryZone.id === selectedZone
-          }
-          return false
-        })
-      }
-
-      // Sort results
-      filtered.sort((a, b) => {
-        switch (value) {
-          case 'rating':
-            const ratingA = a.metadata?.rating || 0
-            const ratingB = b.metadata?.rating || 0
-            return ratingB - ratingA
-          case 'delivery_time':
-            const timeA = parseInt(a.metadata?.delivery_time?.split('-')[0] || '999') || 999
-            const timeB = parseInt(b.metadata?.delivery_time?.split('-')[0] || '999') || 999
-            return timeA - timeB
-          case 'delivery_fee':
-            const feeA = a.metadata?.delivery_fee || 0
-            const feeB = b.metadata?.delivery_fee || 0
-            return feeA - feeB
-          default:
-            return 0
-        }
-      })
-
-      onFilteredResults(filtered)
-    }, 0)
+    updateFilters({ sort: value })
   }
 
   const clearAllFilters = () => {
-    setSelectedCuisine('')
-    setSelectedZone('')
-    setSortBy('rating')
-    onFilteredResults(restaurants)
+    router.push('/restaurants')
   }
 
   return (
     <div className={`bg-white rounded-xl shadow-card p-6 ${className}`}>
-      {/* Mobile Filter Toggle */}
-      <div className="md:hidden mb-4">
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg"
-        >
-          <span className="flex items-center">
-            <Filter className="h-4 w-4 mr-2" />
-            Filters & Sort
-          </span>
-          <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
-
       {/* Filters */}
-      <div className={`space-y-4 ${showFilters ? 'block' : 'hidden md:block'}`}>
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Cuisine Filter */}
           <div>
@@ -321,7 +116,7 @@ export default function RestaurantFilters({
               Sort By
             </label>
             <select
-              value={sortBy}
+              value={selectedSort}
               onChange={(e) => handleSortChange(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             >
@@ -366,16 +161,6 @@ export default function RestaurantFilters({
               >
                 ×
               </button>
-            </span>
-          )}
-        </div>
-
-        {/* Results Count */}
-        <div className="text-sm text-gray-600">
-          {restaurants.length > 0 && (
-            <span>
-              Showing {restaurants.length} restaurant{restaurants.length !== 1 ? 's' : ''}
-              {(selectedCuisine || selectedZone) && ' matching your filters'}
             </span>
           )}
         </div>
