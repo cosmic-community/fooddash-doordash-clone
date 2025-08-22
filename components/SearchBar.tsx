@@ -1,93 +1,43 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
+import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Search, X } from 'lucide-react'
 import type { SearchBarProps } from '@/types'
 
-export default function SearchBar({ 
-  onSearch, 
-  placeholder = "Search restaurants, food...", 
-  className = "" 
-}: SearchBarProps) {
+export default function SearchBar({ onSearch, placeholder = "Search...", className = "" }: SearchBarProps) {
   const [query, setQuery] = useState('')
-  const [isFocused, setIsFocused] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (query.trim()) {
-      console.log('SearchBar: Performing search for:', query.trim())
-      
-      if (onSearch) {
-        onSearch(query.trim())
-      } else {
-        // Navigate to search page with query parameter
-        const searchUrl = `/search?q=${encodeURIComponent(query.trim())}`
-        console.log('SearchBar: Navigating to:', searchUrl)
-        router.push(searchUrl)
+    if (onSearch) {
+      // Use provided onSearch callback
+      onSearch(query)
+    } else {
+      // Default behavior: navigate to search page
+      if (query.trim()) {
+        router.push(`/search?q=${encodeURIComponent(query.trim())}`)
       }
     }
   }
 
-  const handleClear = () => {
-    console.log('SearchBar: Clearing search query')
-    setQuery('')
-    if (onSearch) {
-      onSearch('')
-    }
-    inputRef.current?.focus()
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      handleClear()
-    }
-  }
-
-  useEffect(() => {
-    console.log('SearchBar: Query changed to:', query)
-  }, [query])
-
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
-      <div className={`relative transition-all duration-200 ${
-        isFocused ? 'transform scale-105' : ''
-      }`}>
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
-        </div>
-        
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
         <input
-          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-gray-900 placeholder-gray-500"
         />
-        
-        {query && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-700 transition-colors"
-          >
-            <X className="h-5 w-5 text-gray-400" />
-          </button>
-        )}
       </div>
-      
-      {/* Submit button for accessibility - hidden but functional */}
       <button
         type="submit"
-        className="sr-only"
-        aria-label="Search"
+        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
       >
         Search
       </button>

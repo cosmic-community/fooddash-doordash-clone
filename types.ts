@@ -133,9 +133,15 @@ interface CategoryFilterProps {
 }
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch?: (query: string) => void; // Made optional
   placeholder?: string;
   className?: string;
+}
+
+interface SearchResultsProps {
+  query: string;
+  restaurants: Restaurant[];
+  menuItems: MenuItem[];
 }
 
 interface CartItemProps {
@@ -189,6 +195,7 @@ export type {
   MenuItemCardProps,
   CategoryFilterProps,
   SearchBarProps,
+  SearchResultsProps,
   CartItemProps,
   AddToCartButtonProps,
   CartSidebarProps,
