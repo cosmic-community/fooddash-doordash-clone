@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import CosmicBadge from '@/components/CosmicBadge'
+import Script from 'next/script'
 import type { Metadata } from 'next'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -28,6 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <Script
+          src="/dashboard-console-capture.js"
+          strategy="beforeInteractive"
+        />
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">
