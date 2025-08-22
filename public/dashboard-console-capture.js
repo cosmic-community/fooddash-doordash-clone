@@ -154,19 +154,29 @@
     setTimeout(sendRouteChange, 50);
   });
 
-  // Monitor Next.js route changes more specifically
+  // Monitor Next.js route changes with proper null checks
   if (typeof window !== 'undefined') {
-    // Listen for Next.js router events if available
+    // Check for Next.js router availability with safe access
     const checkForNextRouter = () => {
-      if (window.next && window.next.router) {
-        window.next.router.events.on('routeChangeComplete', sendRouteChange);
+      try {
+        // Safely check for Next.js router existence and events
+        if (window.next && 
+            window.next.router && 
+            window.next.router.events &&
+            typeof window.next.router.events.on === 'function') {
+          window.next.router.events.on('routeChangeComplete', sendRouteChange);
+          return true; // Successfully attached
+        }
+      } catch (error) {
+        // Silently handle any errors in router detection
+        return false;
       }
+      return false;
     };
     
     // Check periodically for Next.js router availability
     const routerCheckInterval = setInterval(() => {
-      checkForNextRouter();
-      if (window.next && window.next.router) {
+      if (checkForNextRouter()) {
         clearInterval(routerCheckInterval);
       }
     }, 500);
