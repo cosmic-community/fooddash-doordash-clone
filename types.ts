@@ -133,7 +133,7 @@ interface CategoryFilterProps {
 }
 
 interface SearchBarProps {
-  onSearch?: (query: string) => void; // Made optional
+  onSearch?: (query: string) => void;
   placeholder?: string;
   className?: string;
 }

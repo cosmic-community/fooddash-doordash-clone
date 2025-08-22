@@ -3,9 +3,9 @@ import MenuItemCard from './MenuItemCard'
 import type { SearchResultsProps } from '@/types'
 
 export default function SearchResults({ query, restaurants, menuItems }: SearchResultsProps) {
-  const hasResults = restaurants.length > 0 || menuItems.length > 0
+  const totalResults = restaurants.length + menuItems.length
 
-  if (!hasResults) {
+  if (totalResults === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">🔍</div>
@@ -13,7 +13,7 @@ export default function SearchResults({ query, restaurants, menuItems }: SearchR
           No results found for "{query}"
         </h3>
         <p className="text-gray-600">
-          Try searching with different keywords or browse our categories.
+          Try searching for different keywords or browse our restaurants.
         </p>
       </div>
     )
@@ -21,32 +21,43 @@ export default function SearchResults({ query, restaurants, menuItems }: SearchR
 
   return (
     <div className="space-y-8">
-      {/* Restaurants Section */}
+      {/* Search Summary */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Search Results for "{query}"
+        </h2>
+        <p className="text-gray-600">
+          Found {totalResults} result{totalResults !== 1 ? 's' : ''} 
+          ({restaurants.length} restaurant{restaurants.length !== 1 ? 's' : ''}, {menuItems.length} menu item{menuItems.length !== 1 ? 's' : ''})
+        </p>
+      </div>
+
+      {/* Restaurants */}
       {restaurants.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">
             Restaurants ({restaurants.length})
-          </h2>
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {restaurants.map((restaurant) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} />
             ))}
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Menu Items Section */}
+      {/* Menu Items */}
       {menuItems.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">
             Menu Items ({menuItems.length})
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {menuItems.map((menuItem) => (
               <MenuItemCard key={menuItem.id} menuItem={menuItem} />
             ))}
           </div>
-        </section>
+        </div>
       )}
     </div>
   )
