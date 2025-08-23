@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerStripe } from '@/lib/stripe'
 import { createOrder } from '@/lib/cosmic'
+import { resend, EMAIL_CONFIG } from '@/lib/resend'
+import { OrderConfirmationEmail } from '@/components/OrderConfirmationEmail'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import type { CreateOrderData } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -70,6 +74,40 @@ export async function POST(req: NextRequest) {
         { error: 'Failed to create order record' },
         { status: 500 }
       )
+    }
+
+    // Send confirmation email
+    try {
+      const emailHtml = renderToStaticMarkup(
+        createElement(OrderConfirmationEmail, {
+          orderNumber: order.metadata.order_number,
+          customerName: order.metadata.customer_name,
+          customerEmail: order.metadata.customer_email,
+          restaurantName: order.metadata.restaurant_name,
+          orderItems: orderItems,
+          subtotal: order.metadata.subtotal,
+          deliveryFee: order.metadata.delivery_fee,
+          tax: order.metadata.tax,
+          totalAmount: order.metadata.total_amount,
+          deliveryAddress: order.metadata.delivery_address,
+          estimatedDeliveryTime: order.metadata.estimated_delivery_time || '30-45 minutes',
+          specialInstructions: order.metadata.special_instructions
+        })
+      )
+
+      await resend.emails.send({
+        from: EMAIL_CONFIG.from,
+        to: order.metadata.customer_email,
+        subject: `Order Confirmation #${order.metadata.order_number} - FoodDash`,
+        html: emailHtml,
+        replyTo: EMAIL_CONFIG.replyTo
+      })
+
+      console.log(`Confirmation email sent to ${order.metadata.customer_email} for order ${order.metadata.order_number}`)
+    } catch (emailError) {
+      // Log email error but don't fail the entire request
+      console.error('Failed to send confirmation email:', emailError)
+      // Order was created successfully, email failure shouldn't break the flow
     }
 
     return NextResponse.json({
