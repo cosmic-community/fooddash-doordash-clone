@@ -88,20 +88,35 @@ interface Order extends CosmicObject {
     order_number: string;
     customer_email: string;
     customer_name: string;
-    customer_phone: string;
+    customer_phone?: string;
     delivery_address: string;
-    order_items: string;
+    order_items: any; // JSON field - can be object or parsed JSON
     subtotal: number;
     delivery_fee: number;
     tax: number;
     total_amount: number;
     payment_intent_id: string;
-    order_status: OrderStatus;
+    order_status: OrderStatus; // Just the string value, not object
     restaurant_id: string;
     restaurant_name: string;
     special_instructions?: string;
     estimated_delivery_time?: string;
   };
+}
+
+// Order creation data - properly structured for Cosmic API
+interface CreateOrderPayload {
+  title: string;
+  type: 'orders';
+  status: 'published';
+  metafields: Array<{
+    title: string;
+    key: string;
+    type: string;
+    required: boolean;
+    id: string;
+    value: any;
+  }>;
 }
 
 // Cart item interface
@@ -248,7 +263,29 @@ function isOrder(obj: CosmicObject): obj is Order {
 // Utility types - properly exclude auto-generated fields
 type CreateRestaurantData = Omit<Restaurant, 'id' | 'slug' | 'created_at' | 'modified_at'>;
 type CreateMenuItemData = Omit<MenuItem, 'id' | 'slug' | 'created_at' | 'modified_at'>;
-type CreateOrderData = Omit<Order, 'id' | 'slug' | 'created_at' | 'modified_at'>;
+type CreateOrderData = {
+  order_number: string;
+  customer_email: string;
+  customer_name: string;
+  customer_phone?: string;
+  delivery_address: string;
+  order_items: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  subtotal: number;
+  delivery_fee: number;
+  tax: number;
+  total_amount: number;
+  payment_intent_id: string;
+  order_status: OrderStatus;
+  restaurant_id: string;
+  restaurant_name: string;
+  special_instructions?: string;
+  estimated_delivery_time?: string;
+};
 
 export type {
   CosmicObject,
@@ -276,6 +313,7 @@ export type {
   CreateRestaurantData,
   CreateMenuItemData,
   CreateOrderData,
+  CreateOrderPayload,
   CuisineType,
   OrderStatus,
 };
