@@ -81,7 +81,7 @@ interface MenuItem extends CosmicObject {
   };
 }
 
-// Order interface
+// Order interface - order_status should be just the string value, not an object
 interface Order extends CosmicObject {
   type: 'orders';
   metadata: {
@@ -90,13 +90,13 @@ interface Order extends CosmicObject {
     customer_name: string;
     customer_phone?: string;
     delivery_address: string;
-    order_items: any; // JSON field - can be object or parsed JSON
+    order_items: string | any; // JSON field - stored as string but can be parsed
     subtotal: number;
     delivery_fee: number;
     tax: number;
     total_amount: number;
     payment_intent_id: string;
-    order_status: OrderStatus; // Just the string value, not object
+    order_status: OrderStatus; // Just the string value (e.g., "Pending")
     restaurant_id: string;
     restaurant_name: string;
     special_instructions?: string;
@@ -104,19 +104,26 @@ interface Order extends CosmicObject {
   };
 }
 
-// Order creation data - properly structured for Cosmic API
-interface CreateOrderPayload {
-  title: string;
-  type: 'orders';
-  status: 'published';
-  metafields: Array<{
-    title: string;
-    key: string;
-    type: string;
-    required: boolean;
-    id: string;
-    value: any;
-  }>;
+// Order creation data - metadata only, properly structured for Cosmic API
+interface CreateOrderData {
+  metadata: {
+    order_number: string;
+    customer_email: string;
+    customer_name: string;
+    customer_phone?: string;
+    delivery_address: string;
+    order_items: string; // JSON as string
+    subtotal: number;
+    delivery_fee: number;
+    tax: number;
+    total_amount: number;
+    payment_intent_id: string;
+    order_status: OrderStatus; // Just the display value string
+    restaurant_id: string;
+    restaurant_name: string;
+    special_instructions?: string;
+    estimated_delivery_time?: string;
+  };
 }
 
 // Cart item interface
@@ -263,29 +270,6 @@ function isOrder(obj: CosmicObject): obj is Order {
 // Utility types - properly exclude auto-generated fields
 type CreateRestaurantData = Omit<Restaurant, 'id' | 'slug' | 'created_at' | 'modified_at'>;
 type CreateMenuItemData = Omit<MenuItem, 'id' | 'slug' | 'created_at' | 'modified_at'>;
-type CreateOrderData = {
-  order_number: string;
-  customer_email: string;
-  customer_name: string;
-  customer_phone?: string;
-  delivery_address: string;
-  order_items: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
-  subtotal: number;
-  delivery_fee: number;
-  tax: number;
-  total_amount: number;
-  payment_intent_id: string;
-  order_status: OrderStatus;
-  restaurant_id: string;
-  restaurant_name: string;
-  special_instructions?: string;
-  estimated_delivery_time?: string;
-};
 
 export type {
   CosmicObject,
@@ -313,7 +297,6 @@ export type {
   CreateRestaurantData,
   CreateMenuItemData,
   CreateOrderData,
-  CreateOrderPayload,
   CuisineType,
   OrderStatus,
 };

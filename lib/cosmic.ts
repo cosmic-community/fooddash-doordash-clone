@@ -13,7 +13,7 @@ function hasStatus(error: unknown): error is { status: number } {
   return typeof error === 'object' && error !== null && 'status' in error;
 }
 
-// Create a new order
+// Create a new order - metadata only with correct select-dropdown value format
 export async function createOrder(orderData: CreateOrderData): Promise<Order | null> {
   try {
     const response = await cosmic.objects.insertOne({
@@ -49,12 +49,12 @@ export async function getOrderByNumber(orderNumber: string): Promise<Order | nul
   }
 }
 
-// Update order status
+// Update order status - using display value string
 export async function updateOrderStatus(orderId: string, status: string): Promise<Order | null> {
   try {
     const response = await cosmic.objects.updateOne(orderId, {
       metadata: {
-        order_status: status
+        order_status: status // Just the display value string
       }
     });
 
