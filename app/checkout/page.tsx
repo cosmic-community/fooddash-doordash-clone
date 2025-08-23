@@ -22,9 +22,21 @@ export default function CheckoutPage() {
   const [isCreatingPayment, setIsCreatingPayment] = useState(false)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [stripePromise, setStripePromise] = useState<Promise<any> | null>(null)
 
   const totals = getTotals()
   const { restaurant } = getRestaurantInfo()
+
+  // Initialize Stripe promise
+  useEffect(() => {
+    try {
+      const promise = getStripe()
+      setStripePromise(promise)
+    } catch (err) {
+      console.error('Failed to initialize Stripe:', err)
+      setError('Payment system is not properly configured. Please check your environment variables.')
+    }
+  }, [])
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -66,10 +78,15 @@ export default function CheckoutPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create payment intent')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create payment intent')
       }
 
       const { clientSecret, paymentIntentId } = await response.json()
+      
+      if (!clientSecret) {
+        throw new Error('Invalid payment intent response')
+      }
       
       setClientSecret(clientSecret)
       setPaymentIntentId(paymentIntentId)
@@ -77,7 +94,7 @@ export default function CheckoutPage() {
       setStep('payment')
     } catch (err) {
       console.error('Error creating payment intent:', err)
-      setError('Failed to process checkout. Please try again.')
+      setError(err instanceof Error ? err.message : 'Failed to process checkout. Please try again.')
     } finally {
       setIsCreatingPayment(false)
     }
@@ -117,7 +134,15 @@ export default function CheckoutPage() {
     return null // Will redirect via useEffect
   }
 
-  const stripePromise = getStripe()
+  if (!stripePromise) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading payment system...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -177,6 +202,15 @@ export default function CheckoutPage() {
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-700">{error}</p>
+                {error.includes('environment variables') && (
+                  <div className="mt-2 text-sm text-red-600">
+                    <p>Make sure you have set the following environment variables:</p>
+                    <ul className="list-disc list-inside mt-1">
+                      <li>STRIPE_SECRET_KEY</li>
+                      <li>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 

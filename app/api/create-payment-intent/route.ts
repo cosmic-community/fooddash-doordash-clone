@@ -4,6 +4,15 @@ import type { PaymentIntentData } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
+    // Check if Stripe is properly configured
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('STRIPE_SECRET_KEY environment variable is not set')
+      return NextResponse.json(
+        { error: 'Payment system is not properly configured' },
+        { status: 500 }
+      )
+    }
+
     const body: PaymentIntentData = await req.json()
     const { amount, currency, metadata } = body
 
@@ -25,6 +34,10 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    if (!paymentIntent.client_secret) {
+      throw new Error('Failed to create payment intent - no client secret returned')
+    }
+
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
@@ -32,6 +45,14 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error creating payment intent:', error)
+    
+    // Check if it's a Stripe-specific error
+    if (error && typeof error === 'object' && 'type' in error) {
+      return NextResponse.json(
+        { error: `Payment system error: ${error.message || 'Unknown error'}` },
+        { status: 500 }
+      )
+    }
     
     return NextResponse.json(
       { error: 'Failed to create payment intent' },
