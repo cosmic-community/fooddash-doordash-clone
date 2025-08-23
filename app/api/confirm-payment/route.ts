@@ -4,7 +4,7 @@ import { createOrder } from '@/lib/cosmic'
 import type { CreateOrderData } from '@/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-02-24.acacia',
 })
 
 export async function POST(req: NextRequest) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const orderData: CreateOrderData = {
       metadata: {
         order_number: orderNumber,
-        customer_email: metadata.customerEmail,
+        customer_email: metadata.customerEmail || '',
         customer_name: `${paymentIntent.shipping?.name || 'Customer'}`,
         customer_phone: paymentIntent.shipping?.phone || '',
         delivery_address: paymentIntent.shipping?.address ? 
