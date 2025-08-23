@@ -1,10 +1,24 @@
 import { createBucketClient } from '@cosmicjs/sdk'
 import type { Restaurant, MenuItem, Category, DeliveryZone, Order, CosmicResponse, CreateOrderData } from '@/types'
 
+// Validate environment variables
+const bucketSlug = process.env.COSMIC_BUCKET_SLUG
+const readKey = process.env.COSMIC_READ_KEY
+const writeKey = process.env.COSMIC_WRITE_KEY
+
+if (!bucketSlug) {
+  throw new Error('COSMIC_BUCKET_SLUG environment variable is required')
+}
+
+if (!readKey) {
+  throw new Error('COSMIC_READ_KEY environment variable is required')
+}
+
+// Create Cosmic client with proper configuration
 export const cosmic = createBucketClient({
-  bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
-  readKey: process.env.COSMIC_READ_KEY as string,
-  writeKey: process.env.COSMIC_WRITE_KEY as string,
+  bucketSlug,
+  readKey,
+  writeKey: writeKey || undefined, // writeKey is optional for read-only operations
   apiEnvironment: 'staging'
 })
 
@@ -16,6 +30,11 @@ function hasStatus(error: unknown): error is { status: number } {
 // Create a new order - metadata only with correct select-dropdown value format
 export async function createOrder(orderData: CreateOrderData): Promise<Order | null> {
   try {
+    // Ensure we have writeKey for create operations
+    if (!writeKey) {
+      throw new Error('COSMIC_WRITE_KEY is required for creating orders')
+    }
+
     const response = await cosmic.objects.insertOne({
       title: `Order ${orderData.metadata.order_number}`,
       type: 'orders',
@@ -45,6 +64,7 @@ export async function getOrderByNumber(orderNumber: string): Promise<Order | nul
     if (hasStatus(error) && error.status === 404) {
       return null;
     }
+    console.error('Error fetching order by number:', error);
     throw new Error('Failed to fetch order');
   }
 }
@@ -52,6 +72,11 @@ export async function getOrderByNumber(orderNumber: string): Promise<Order | nul
 // Update order status - using display value string
 export async function updateOrderStatus(orderId: string, status: string): Promise<Order | null> {
   try {
+    // Ensure we have writeKey for update operations
+    if (!writeKey) {
+      throw new Error('COSMIC_WRITE_KEY is required for updating orders')
+    }
+
     const response = await cosmic.objects.updateOne(orderId, {
       metadata: {
         order_status: status // Just the display value string
@@ -82,6 +107,7 @@ export async function getRestaurants(): Promise<Restaurant[]> {
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching restaurants:', error);
     throw new Error('Failed to fetch restaurants');
   }
 }
@@ -102,6 +128,7 @@ export async function getRestaurantsByCuisine(cuisineType: string): Promise<Rest
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching restaurants by cuisine:', error);
     throw new Error('Failed to fetch restaurants by cuisine');
   }
 }
@@ -122,6 +149,7 @@ export async function getRestaurantsByZone(zoneId: string): Promise<Restaurant[]
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching restaurants by zone:', error);
     throw new Error('Failed to fetch restaurants by zone');
   }
 }
@@ -145,6 +173,7 @@ export async function getRestaurant(slug: string): Promise<Restaurant | null> {
     if (hasStatus(error) && error.status === 404) {
       return null;
     }
+    console.error('Error fetching restaurant:', error);
     throw new Error('Failed to fetch restaurant');
   }
 }
@@ -169,6 +198,7 @@ export async function getMenuItemsByRestaurant(restaurantId: string): Promise<Me
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching menu items by restaurant:', error);
     throw new Error('Failed to fetch menu items');
   }
 }
@@ -189,6 +219,7 @@ export async function getMenuItemsByCategory(categoryId: string): Promise<MenuIt
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching menu items by category:', error);
     throw new Error('Failed to fetch menu items by category');
   }
 }
@@ -207,6 +238,7 @@ export async function getCategories(): Promise<Category[]> {
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching categories:', error);
     throw new Error('Failed to fetch categories');
   }
 }
@@ -225,6 +257,7 @@ export async function getDeliveryZones(): Promise<DeliveryZone[]> {
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching delivery zones:', error);
     throw new Error('Failed to fetch delivery zones');
   }
 }
@@ -255,6 +288,7 @@ export async function getFeaturedMenuItems(limit = 6): Promise<MenuItem[]> {
     if (hasStatus(error) && error.status === 404) {
       return [];
     }
+    console.error('Error fetching featured menu items:', error);
     throw new Error('Failed to fetch featured menu items');
   }
 }
@@ -294,6 +328,7 @@ export async function searchContent(query: string): Promise<{
 
     return { restaurants, menuItems };
   } catch (error) {
+    console.error('Error searching content:', error);
     return { restaurants: [], menuItems: [] };
   }
 }
