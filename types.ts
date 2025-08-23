@@ -106,6 +106,39 @@ interface CartContextType {
   getRestaurantInfo: () => { restaurant: Restaurant | null; hasMultipleRestaurants: boolean };
 }
 
+// Stripe/Checkout interfaces
+interface CheckoutFormData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  specialInstructions?: string;
+}
+
+interface PaymentIntentData {
+  amount: number;
+  currency: string;
+  metadata: {
+    orderId: string;
+    customerEmail: string;
+    restaurantId?: string;
+    items: string;
+  };
+}
+
+interface OrderSummary extends CartTotals {
+  orderId: string;
+  customerInfo: CheckoutFormData;
+  items: CartItem[];
+  restaurant: Restaurant | null;
+  paymentStatus: 'pending' | 'processing' | 'succeeded' | 'failed';
+  createdAt: string;
+}
+
 // API response types
 interface CosmicResponse<T> {
   objects: T[];
@@ -160,6 +193,11 @@ interface CartSidebarProps {
   onClose: () => void;
 }
 
+interface CheckoutFormProps {
+  onSubmit: (data: CheckoutFormData) => void;
+  isSubmitting: boolean;
+}
+
 // Type guards
 function isRestaurant(obj: CosmicObject): obj is Restaurant {
   return obj.type === 'restaurants';
@@ -190,6 +228,9 @@ export type {
   CartItem,
   CartTotals,
   CartContextType,
+  CheckoutFormData,
+  PaymentIntentData,
+  OrderSummary,
   CosmicResponse,
   RestaurantCardProps,
   MenuItemCardProps,
@@ -199,6 +240,7 @@ export type {
   CartItemProps,
   AddToCartButtonProps,
   CartSidebarProps,
+  CheckoutFormProps,
   CreateRestaurantData,
   CreateMenuItemData,
   CuisineType,

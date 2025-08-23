@@ -122,20 +122,9 @@ function CartItemComponent({ item }: CartItemComponentProps) {
 
 export default function CartPage() {
   const { items, clearCart, getTotals, getRestaurantInfo } = useCart()
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
   
   const totals = getTotals()
   const { restaurant, hasMultipleRestaurants } = getRestaurantInfo()
-
-  const handleCheckout = async () => {
-    setIsCheckingOut(true)
-    
-    // Simulate checkout process
-    setTimeout(() => {
-      alert('Checkout functionality would be implemented here!')
-      setIsCheckingOut(false)
-    }, 2000)
-  }
 
   if (items.length === 0) {
     return (
@@ -297,26 +286,16 @@ export default function CartPage() {
               )}
 
               {/* Checkout Button */}
-              <button
-                onClick={handleCheckout}
-                disabled={isCheckingOut || (restaurant?.metadata?.minimum_order && totals.subtotal < restaurant.metadata.minimum_order) || false}
-                className={`w-full py-4 px-6 rounded-lg font-medium transition-all ${
-                  isCheckingOut
-                    ? 'bg-gray-400 text-white cursor-wait'
-                    : (restaurant?.metadata?.minimum_order && totals.subtotal < restaurant.metadata.minimum_order)
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-primary text-white hover:bg-primary-dark hover:shadow-lg'
+              <Link
+                href="/checkout"
+                className={`block w-full py-4 px-6 rounded-lg font-medium text-center transition-all ${
+                  (restaurant?.metadata?.minimum_order && totals.subtotal < restaurant.metadata.minimum_order)
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none'
+                    : 'bg-primary text-white hover:bg-primary-dark hover:shadow-lg'
                 }`}
               >
-                {isCheckingOut ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Processing...</span>
-                  </div>
-                ) : (
-                  `Proceed to Checkout • $${totals.total.toFixed(2)}`
-                )}
-              </button>
+                Proceed to Checkout • ${totals.total.toFixed(2)}
+              </Link>
 
               {/* Restaurant Info */}
               {restaurant && (
