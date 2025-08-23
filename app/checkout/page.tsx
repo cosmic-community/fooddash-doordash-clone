@@ -65,6 +65,8 @@ export default function CheckoutPage() {
             name: item.menuItem.metadata?.name,
             quantity: item.quantity,
             price: item.menuItem.metadata?.price,
+            image_url: item.menuItem.metadata?.food_image?.imgix_url, // Include food image URL
+            specialInstructions: item.specialInstructions,
           }))),
         },
       }

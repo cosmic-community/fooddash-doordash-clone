@@ -33,19 +33,34 @@ function generateOrderConfirmationHTML({
   specialInstructions?: string;
 }) {
   const itemsHTML = orderItems.map(item => `
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
-      <div style="flex: 1;">
-        <div style="font-weight: bold; margin-bottom: 4px;">${item.name}</div>
-        <div style="font-size: 14px; color: #666;">
-          Quantity: ${item.quantity} × $${item.price.toFixed(2)}
-        </div>
-        ${item.specialInstructions ? `
-          <div style="font-size: 12px; color: #888; font-style: italic; margin-top: 4px;">
-            Note: ${item.specialInstructions}
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #eee;">
+      <div style="display: flex; align-items: center; flex: 1;">
+        ${item.image_url ? `
+          <div style="margin-right: 16px; flex-shrink: 0;">
+            <img 
+              src="${item.image_url}?w=120&h=120&fit=crop&auto=format,compress" 
+              alt="${item.name}" 
+              style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 1px solid #e5e5e5;"
+            />
           </div>
-        ` : ''}
+        ` : `
+          <div style="margin-right: 16px; flex-shrink: 0; width: 80px; height: 80px; background-color: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e5e5;">
+            <span style="font-size: 32px;">🍽️</span>
+          </div>
+        `}
+        <div style="flex: 1;">
+          <div style="font-weight: bold; font-size: 16px; margin-bottom: 4px; color: #333;">${item.name}</div>
+          <div style="font-size: 14px; color: #666; margin-bottom: 2px;">
+            Quantity: ${item.quantity} × $${item.price.toFixed(2)}
+          </div>
+          ${item.specialInstructions ? `
+            <div style="font-size: 12px; color: #888; font-style: italic; margin-top: 4px; background-color: #f8f9fa; padding: 4px 8px; border-radius: 4px;">
+              Note: ${item.specialInstructions}
+            </div>
+          ` : ''}
+        </div>
       </div>
-      <div style="font-weight: bold; min-width: 80px; text-align: right;">
+      <div style="font-weight: bold; font-size: 16px; min-width: 80px; text-align: right; color: #333;">
         $${(item.price * item.quantity).toFixed(2)}
       </div>
     </div>
@@ -90,7 +105,9 @@ function generateOrderConfirmationHTML({
         <!-- Items Ordered -->
         <div style="margin-bottom: 20px;">
           <h3 style="color: #333; margin-bottom: 15px;">Items Ordered</h3>
-          ${itemsHTML}
+          <div style="background-color: #fff; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden;">
+            ${itemsHTML}
+          </div>
         </div>
 
         <!-- Order Total -->
@@ -235,7 +252,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Send confirmation email using HTML template
+    // Send confirmation email using HTML template with food images
     try {
       const emailHtml = generateOrderConfirmationHTML({
         orderNumber: order.metadata.order_number,
