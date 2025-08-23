@@ -4,7 +4,7 @@ import type { Restaurant, MenuItem, Category, DeliveryZone, Order, CosmicRespons
 // Validate environment variables
 const bucketSlug = process.env.COSMIC_BUCKET_SLUG
 const readKey = process.env.COSMIC_READ_KEY
-const writeKey = process.env.COSMIC_WRITE_KEY,
+const writeKey = process.env.COSMIC_WRITE_KEY
 
 if (!bucketSlug) {
   throw new Error('COSMIC_BUCKET_SLUG environment variable is required')
