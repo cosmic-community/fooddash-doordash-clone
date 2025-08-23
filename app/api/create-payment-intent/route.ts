@@ -46,10 +46,15 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Error creating payment intent:', error)
     
-    // Check if it's a Stripe-specific error
+    // Check if it's a Stripe-specific error with proper type checking
     if (error && typeof error === 'object' && 'type' in error) {
+      // Safely extract the message with proper type checking
+      const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' 
+        ? error.message 
+        : 'Unknown error'
+        
       return NextResponse.json(
-        { error: `Payment system error: ${error.message || 'Unknown error'}` },
+        { error: `Payment system error: ${errorMessage}` },
         { status: 500 }
       )
     }
