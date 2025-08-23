@@ -245,10 +245,10 @@ function isOrder(obj: CosmicObject): obj is Order {
   return obj.type === 'orders';
 }
 
-// Utility types
-type CreateRestaurantData = Omit<Restaurant, 'id' | 'created_at' | 'modified_at'>;
-type CreateMenuItemData = Omit<MenuItem, 'id' | 'created_at' | 'modified_at'>;
-type CreateOrderData = Omit<Order, 'id' | 'created_at' | 'modified_at'>;
+// Utility types - properly exclude auto-generated fields
+type CreateRestaurantData = Omit<Restaurant, 'id' | 'slug' | 'created_at' | 'modified_at'>;
+type CreateMenuItemData = Omit<MenuItem, 'id' | 'slug' | 'created_at' | 'modified_at'>;
+type CreateOrderData = Omit<Order, 'id' | 'slug' | 'created_at' | 'modified_at'>;
 
 export type {
   CosmicObject,
