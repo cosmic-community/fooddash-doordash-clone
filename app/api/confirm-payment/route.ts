@@ -2,10 +2,169 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerStripe } from '@/lib/stripe'
 import { createOrder } from '@/lib/cosmic'
 import { resend, EMAIL_CONFIG } from '@/lib/resend'
-import { OrderConfirmationEmail } from '@/components/OrderConfirmationEmail'
-import { createElement } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import type { CreateOrderData } from '@/types'
+
+// Helper function to generate HTML email template
+function generateOrderConfirmationHTML({
+  orderNumber,
+  customerName,
+  customerEmail,
+  restaurantName,
+  orderItems,
+  subtotal,
+  deliveryFee,
+  tax,
+  totalAmount,
+  deliveryAddress,
+  estimatedDeliveryTime,
+  specialInstructions
+}: {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  restaurantName: string;
+  orderItems: any[];
+  subtotal: number;
+  deliveryFee: number;
+  tax: number;
+  totalAmount: number;
+  deliveryAddress: string;
+  estimatedDeliveryTime: string;
+  specialInstructions?: string;
+}) {
+  const itemsHTML = orderItems.map(item => `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+      <div style="flex: 1;">
+        <div style="font-weight: bold; margin-bottom: 4px;">${item.name}</div>
+        <div style="font-size: 14px; color: #666;">
+          Quantity: ${item.quantity} × $${item.price.toFixed(2)}
+        </div>
+        ${item.specialInstructions ? `
+          <div style="font-size: 12px; color: #888; font-style: italic; margin-top: 4px;">
+            Note: ${item.specialInstructions}
+          </div>
+        ` : ''}
+      </div>
+      <div style="font-weight: bold; min-width: 80px; text-align: right;">
+        $${(item.price * item.quantity).toFixed(2)}
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Order Confirmation #${orderNumber}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5;">
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: white;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #FF6B35; font-size: 28px; margin-bottom: 10px;">🍽️ FoodDash</h1>
+          <h2 style="color: #333; font-size: 24px; margin-bottom: 10px;">Order Confirmed!</h2>
+          <p style="color: #666; font-size: 16px;">Thank you for your order, ${customerName}!</p>
+        </div>
+
+        <!-- Order Details Box -->
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #333; margin-bottom: 15px;">Order Details</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <strong>Order Number:</strong>
+            <span style="font-family: monospace; background-color: #FF6B35; color: white; padding: 2px 8px; border-radius: 4px;">
+              #${orderNumber}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <strong>Restaurant:</strong>
+            <span>${restaurantName}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <strong>Estimated Delivery:</strong>
+            <span>${estimatedDeliveryTime}</span>
+          </div>
+        </div>
+
+        <!-- Items Ordered -->
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: #333; margin-bottom: 15px;">Items Ordered</h3>
+          ${itemsHTML}
+        </div>
+
+        <!-- Order Total -->
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #333; margin-bottom: 15px;">Order Total</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Subtotal:</span>
+            <span>$${subtotal.toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Delivery Fee:</span>
+            <span>$${deliveryFee.toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Tax:</span>
+            <span>$${tax.toFixed(2)}</span>
+          </div>
+          <hr style="margin: 12px 0; border: none; border-top: 2px solid #ddd;" />
+          <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold;">
+            <span>Total:</span>
+            <span>$${totalAmount.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <!-- Delivery Information -->
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #333; margin-bottom: 15px;">🚗 Delivery Information</h3>
+          <div style="margin-bottom: 10px;">
+            <strong>Delivering to:</strong><br />
+            <span style="color: #666;">${deliveryAddress}</span>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <strong>Contact:</strong><br />
+            <span style="color: #666;">${customerEmail}</span>
+          </div>
+          ${specialInstructions ? `
+            <div>
+              <strong>Special Instructions:</strong><br />
+              <span style="color: #666; font-style: italic;">${specialInstructions}</span>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Order Tracking -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h3 style="color: #333; margin-bottom: 15px;">📱 Track Your Order</h3>
+          <p style="color: #666; margin-bottom: 15px;">
+            You can track your order status and get real-time updates by visiting our website.
+          </p>
+          <a 
+            href="https://fooddash.cosmicjs.com"
+            style="background-color: #FF6B35; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;"
+          >
+            Track Order
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee; color: #888; font-size: 14px;">
+          <p style="margin-bottom: 10px;">
+            Thank you for choosing FoodDash! 🍕
+          </p>
+          <p style="margin-bottom: 5px;">
+            Questions? Contact us at <a href="mailto:tony@cosmicjs.com" style="color: #FF6B35;">tony@cosmicjs.com</a>
+          </p>
+          <p style="font-size: 12px; color: #aaa;">
+            This is an automated email. Please do not reply directly to this message.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -76,24 +235,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Send confirmation email
+    // Send confirmation email using HTML template
     try {
-      const emailHtml = renderToStaticMarkup(
-        createElement(OrderConfirmationEmail, {
-          orderNumber: order.metadata.order_number,
-          customerName: order.metadata.customer_name,
-          customerEmail: order.metadata.customer_email,
-          restaurantName: order.metadata.restaurant_name,
-          orderItems: orderItems,
-          subtotal: order.metadata.subtotal,
-          deliveryFee: order.metadata.delivery_fee,
-          tax: order.metadata.tax,
-          totalAmount: order.metadata.total_amount,
-          deliveryAddress: order.metadata.delivery_address,
-          estimatedDeliveryTime: order.metadata.estimated_delivery_time || '30-45 minutes',
-          specialInstructions: order.metadata.special_instructions
-        })
-      )
+      const emailHtml = generateOrderConfirmationHTML({
+        orderNumber: order.metadata.order_number,
+        customerName: order.metadata.customer_name,
+        customerEmail: order.metadata.customer_email,
+        restaurantName: order.metadata.restaurant_name,
+        orderItems: orderItems,
+        subtotal: order.metadata.subtotal,
+        deliveryFee: order.metadata.delivery_fee,
+        tax: order.metadata.tax,
+        totalAmount: order.metadata.total_amount,
+        deliveryAddress: order.metadata.delivery_address,
+        estimatedDeliveryTime: order.metadata.estimated_delivery_time || '30-45 minutes',
+        specialInstructions: order.metadata.special_instructions
+      })
 
       await resend.emails.send({
         from: EMAIL_CONFIG.from,
