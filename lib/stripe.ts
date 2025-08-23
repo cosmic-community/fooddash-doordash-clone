@@ -1,17 +1,19 @@
-import { loadStripe, Stripe } from '@stripe/stripe-js'
+import Stripe from 'stripe'
+import { loadStripe } from '@stripe/stripe-js'
 
-let stripePromise: Promise<Stripe | null>
+// Server-side Stripe instance
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: '2024-06-20',
+})
 
-export const getStripe = (): Promise<Stripe | null> => {
+// Client-side Stripe instance
+let stripePromise: Promise<import('@stripe/stripe-js').Stripe | null>
+
+const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
   }
   return stripePromise
 }
 
-// Server-side Stripe instance
-import Stripe from 'stripe'
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-})
+export { stripe, getStripe }
