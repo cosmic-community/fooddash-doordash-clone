@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
+import { getServerStripe } from '@/lib/stripe'
 import { createOrder } from '@/lib/cosmic'
 import type { CreateOrderData } from '@/types'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
-})
-
 export async function POST(req: NextRequest) {
   try {
+    const stripe = getServerStripe()
     const { paymentIntentId } = await req.json()
 
     if (!paymentIntentId) {

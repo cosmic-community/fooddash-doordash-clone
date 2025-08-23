@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Elements } from '@stripe/react-stripe-js'
-import { getStripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe-client'
 import { useCart } from '@/contexts/CartContext'
 import CheckoutForm from '@/components/CheckoutForm'
 import StripePaymentForm from '@/components/StripePaymentForm'
@@ -206,8 +206,8 @@ export default function CheckoutPage() {
                   <div className="mt-2 text-sm text-red-600">
                     <p>Make sure you have set the following environment variables:</p>
                     <ul className="list-disc list-inside mt-1">
-                      <li>STRIPE_SECRET_KEY</li>
-                      <li>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</li>
+                      <li>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (client-side)</li>
+                      <li>STRIPE_SECRET_KEY (server-side only)</li>
                     </ul>
                   </div>
                 )}

@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getServerStripe } from '@/lib/stripe'
 import type { PaymentIntentData } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
-    // Check if Stripe is properly configured
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error('STRIPE_SECRET_KEY environment variable is not set')
-      return NextResponse.json(
-        { error: 'Payment system is not properly configured' },
-        { status: 500 }
-      )
-    }
+    // Get server-side Stripe instance (this will check environment variables)
+    const stripe = getServerStripe()
 
     const body: PaymentIntentData = await req.json()
     const { amount, currency, metadata } = body
