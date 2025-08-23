@@ -259,7 +259,7 @@ export default function CheckoutForm({ onSubmit, isSubmitting }: CheckoutFormPro
         {isSubmitting ? (
           <div className="flex items-center justify-center space-x-2">
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>Processing...</span>
+            <span>Preparing your order details...</span>
           </div>
         ) : (
           'Continue to Payment'

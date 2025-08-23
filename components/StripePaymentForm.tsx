@@ -108,7 +108,7 @@ export default function StripePaymentForm({
           {isLoading ? (
             <div className="flex items-center justify-center space-x-2">
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Processing Payment...</span>
+              <span>Processing your delicious order...</span>
             </div>
           ) : (
             `Pay $${total.toFixed(2)}`
