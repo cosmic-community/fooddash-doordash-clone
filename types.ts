@@ -13,6 +13,9 @@ interface CosmicObject {
 // Cuisine type for select-dropdown
 type CuisineType = 'American' | 'Italian' | 'Mexican' | 'Asian' | 'Indian' | 'Mediterranean';
 
+// Order status for select-dropdown
+type OrderStatus = 'Pending' | 'Confirmed' | 'Preparing' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
+
 // Delivery Zone interface
 interface DeliveryZone extends CosmicObject {
   type: 'delivery-zones';
@@ -75,6 +78,29 @@ interface MenuItem extends CosmicObject {
     is_vegetarian: boolean;
     is_spicy: boolean;
     available: boolean;
+  };
+}
+
+// Order interface
+interface Order extends CosmicObject {
+  type: 'orders';
+  metadata: {
+    order_number: string;
+    customer_email: string;
+    customer_name: string;
+    customer_phone: string;
+    delivery_address: string;
+    order_items: string;
+    subtotal: number;
+    delivery_fee: number;
+    tax: number;
+    total_amount: number;
+    payment_intent_id: string;
+    order_status: OrderStatus;
+    restaurant_id: string;
+    restaurant_name: string;
+    special_instructions?: string;
+    estimated_delivery_time?: string;
   };
 }
 
@@ -215,9 +241,14 @@ function isDeliveryZone(obj: CosmicObject): obj is DeliveryZone {
   return obj.type === 'delivery-zones';
 }
 
+function isOrder(obj: CosmicObject): obj is Order {
+  return obj.type === 'orders';
+}
+
 // Utility types
 type CreateRestaurantData = Omit<Restaurant, 'id' | 'created_at' | 'modified_at'>;
 type CreateMenuItemData = Omit<MenuItem, 'id' | 'created_at' | 'modified_at'>;
+type CreateOrderData = Omit<Order, 'id' | 'created_at' | 'modified_at'>;
 
 export type {
   CosmicObject,
@@ -225,6 +256,7 @@ export type {
   MenuItem,
   Category,
   DeliveryZone,
+  Order,
   CartItem,
   CartTotals,
   CartContextType,
@@ -243,7 +275,9 @@ export type {
   CheckoutFormProps,
   CreateRestaurantData,
   CreateMenuItemData,
+  CreateOrderData,
   CuisineType,
+  OrderStatus,
 };
 
 export {
@@ -251,4 +285,5 @@ export {
   isMenuItem,
   isCategory,
   isDeliveryZone,
+  isOrder,
 };

@@ -1,5 +1,5 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import type { Restaurant, MenuItem, Category, DeliveryZone, CosmicResponse } from '@/types'
+import type { Restaurant, MenuItem, Category, DeliveryZone, Order, CosmicResponse, CreateOrderData } from '@/types'
 
 export const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
@@ -11,6 +11,57 @@ export const cosmic = createBucketClient({
 // Simple error helper for Cosmic SDK
 function hasStatus(error: unknown): error is { status: number } {
   return typeof error === 'object' && error !== null && 'status' in error;
+}
+
+// Create a new order
+export async function createOrder(orderData: CreateOrderData): Promise<Order | null> {
+  try {
+    const response = await cosmic.objects.insertOne({
+      title: `Order ${orderData.metadata.order_number}`,
+      type: 'orders',
+      status: 'published',
+      metadata: orderData.metadata
+    });
+
+    return response.object as Order;
+  } catch (error) {
+    console.error('Error creating order:', error);
+    throw new Error('Failed to create order');
+  }
+}
+
+// Get order by order number
+export async function getOrderByNumber(orderNumber: string): Promise<Order | null> {
+  try {
+    const response = await cosmic.objects.find({
+      type: 'orders',
+      'metadata.order_number': orderNumber
+    }).props(['id', 'title', 'slug', 'metadata']).depth(1);
+
+    const orders = response.objects as Order[];
+    return orders.length > 0 ? orders[0] : null;
+  } catch (error) {
+    if (hasStatus(error) && error.status === 404) {
+      return null;
+    }
+    throw new Error('Failed to fetch order');
+  }
+}
+
+// Update order status
+export async function updateOrderStatus(orderId: string, status: string): Promise<Order | null> {
+  try {
+    const response = await cosmic.objects.updateOne(orderId, {
+      metadata: {
+        order_status: status
+      }
+    });
+
+    return response.object as Order;
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw new Error('Failed to update order status');
+  }
 }
 
 // Get all restaurants with delivery zones
