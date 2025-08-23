@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
 
     // Extract data from payment intent metadata
     const metadata = paymentIntent.metadata
-    const orderId = metadata.orderId
-    const customerEmail = metadata.customerEmail
-    const restaurantId = metadata.restaurantId
+    const orderId = metadata.orderId || `order_${Date.now()}`
+    const customerEmail = metadata.customerEmail || 'unknown@example.com'
+    const restaurantId = metadata.restaurantId || ''
     const items: CartItem[] = JSON.parse(metadata.items || '[]')
 
     // Calculate totals from payment intent
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         total_amount: totalAmount,
         payment_intent_id: paymentIntentId,
         order_status: 'Pending' as const,
-        restaurant_id: restaurantId || '',
+        restaurant_id: restaurantId,
         restaurant_name: items[0]?.menuItem?.metadata?.restaurant?.metadata?.name || 'Unknown Restaurant',
         special_instructions: '', // You might want to extract this from items
         estimated_delivery_time: '30-45 minutes'

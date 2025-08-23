@@ -39,7 +39,8 @@ export async function getOrderByNumber(orderNumber: string): Promise<Order | nul
     }).props(['id', 'title', 'slug', 'metadata']).depth(1);
 
     const orders = response.objects as Order[];
-    return orders.length > 0 ? orders[0] : null;
+    const order = orders.length > 0 ? orders[0] : undefined;
+    return order || null;
   } catch (error) {
     if (hasStatus(error) && error.status === 404) {
       return null;
