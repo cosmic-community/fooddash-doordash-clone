@@ -60,7 +60,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                   </p>
                   <button
                     onClick={onClose}
-                    className="btn btn-primary"
+                    className="btn btn-primary px-8 py-4"
                   >
                     Browse Menu
                   </button>
@@ -195,14 +195,14 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     <Link
                       href="/cart"
                       onClick={onClose}
-                      className="w-full btn btn-primary flex items-center justify-center space-x-2"
+                      className="w-full btn btn-primary px-6 py-4 flex items-center justify-center space-x-2"
                     >
                       <span>Go to Checkout</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <button
                       onClick={onClose}
-                      className="w-full text-center text-primary hover:text-primary-dark font-medium py-2"
+                      className="w-full text-center text-primary hover:text-primary-dark font-medium py-3"
                     >
                       Continue Shopping
                     </button>
