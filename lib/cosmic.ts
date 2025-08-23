@@ -19,7 +19,6 @@ export const cosmic = createBucketClient({
   bucketSlug,
   readKey,
   writeKey: writeKey || undefined, // writeKey is optional for read-only operations
-  apiEnvironment: 'staging'
 })
 
 // Simple error helper for Cosmic SDK
